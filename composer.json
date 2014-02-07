@@ -37,11 +37,11 @@
         "mrclay/minify": "dev-master",
         "braincrafted/bootstrap-bundle": "dev-develop",
         "jms/serializer": "dev-master",
-        "zendframework/ZendSearch": "dev-master",
+        "zendframework/ZendSearch": "dev-master"
     },
     "autoload": {
         "psr-0": {
-            "Keratine": "src/",
+            "Keratine": "src/"
         }
     },
     "extra": {
