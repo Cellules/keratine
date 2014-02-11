@@ -39,6 +39,6 @@ class UserProviderHelper extends Helper
      */
     public function getName()
     {
-        return 'user.provider';
+        return 'users';
     }
 }

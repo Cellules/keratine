@@ -54,7 +54,7 @@ class UserCreateCommand extends ContainerAwareCommand
         }
 
         // encode the password
-        $this->getHelper('user.provider')->getUserProvider()->setUserPassword($user, $password);
+        $this->getHelper('users')->getUserProvider()->setUserPassword($user, $password);
 
         $this->getHelper('em')->getEntityManager()->persist($user);
         $this->getHelper('em')->getEntityManager()->flush();
