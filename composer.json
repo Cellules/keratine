@@ -11,6 +11,7 @@
     ],
     "require": {
         "php": ">=5.3.3",
+        "pimple/pimple": "~1.0",
         "silex/silex": "~1.1",
         "dflydev/doctrine-orm-service-provider": "1.0.*@dev",
         "gedmo/doctrine-extensions": "dev-master",
