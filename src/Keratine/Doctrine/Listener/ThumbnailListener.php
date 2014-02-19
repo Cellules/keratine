@@ -92,7 +92,7 @@ class ThumbnailListener implements EventSubscriber
         $meta = $entityManager->getClassMetadata(get_class($entity));
 
         foreach ($meta->fieldMappings as $field => $options) {
-            $reflProperty = new ReflectionProperty(get_class($entity), $field);
+            $reflProperty = new ReflectionProperty($meta->getName(), $field);
             $annotation = $this->getAnnotationReader()->getPropertyAnnotation($reflProperty, '\Keratine\Doctrine\Mapping\Annotation\Thumbnail');
             if ($annotation) {
                 $accessor = PropertyAccess::createPropertyAccessor();
@@ -116,7 +116,7 @@ class ThumbnailListener implements EventSubscriber
         $meta = $entityManager->getClassMetadata(get_class($entity));
 
         foreach ($meta->fieldMappings as $field => $options) {
-            $reflProperty = new ReflectionProperty(get_class($entity), $field);
+            $reflProperty = new ReflectionProperty($meta->getName(), $field);
             $annotation = $this->getAnnotationReader()->getPropertyAnnotation($reflProperty, '\Keratine\Doctrine\Mapping\Annotation\Thumbnail');
             if ($annotation) {
                 $accessor = PropertyAccess::createPropertyAccessor();
