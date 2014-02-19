@@ -29,6 +29,7 @@ class TypesExtension extends AbstractExtension
         return array(
             new Type\BootstrapCollectionType(),
             new Type\ColorType(),
+            new Type\DurationType(),
             new Type\FileExplorerType(),
             new Type\ImageCropType(),
             new Type\ImageType(),
