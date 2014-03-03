@@ -1,8 +1,25 @@
 <?php
 namespace Keratine\Widget;
 
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
+
 class Boolean extends AbstractWidget
 {
+    protected function setDefaultOptions(OptionsResolverInterface $resolver)
+    {
+        $resolver->setOptional(array('icon_check', 'icon_unchecked'));
+
+        $resolver->setDefaults(array(
+            'icon_check'     => 'glyphicon-check',
+            'icon_unchecked' => 'glyphicon-unchecked',
+        ));
+
+        $resolver->setAllowedTypes(array(
+            'icon_check'     => 'string',
+            'icon_unchecked' => 'string',
+        ));
+    }
+
 	public function render($entity, $column)
 	{
 		$route = $this->container['request']->attributes->get('_route');
@@ -16,22 +33,34 @@ class Boolean extends AbstractWidget
 		$url = $this->container['url_generator']->generate($ajax_route, array('id' => $id, 'column' => $column, 'value' => (int) !$value));
 
 		$callback = "var icon = this.querySelector('.glyphicon');
-			if (icon.classList.contains('glyphicon-unchecked')) {
-				icon.classList.add('glyphicon-check');
-				icon.classList.remove('glyphicon-unchecked');
+			if (icon.classList.contains('".$this->options['icon_unchecked']."')) {
+                var icon_check = '".$this->options['icon_check']."'.trim().split(' ');
+                for (i in icon_check) {
+                    icon.classList.add(icon_check[i]);
+                }
+                var icon_unchecked = '".$this->options['icon_unchecked']."'.trim().split(' ');
+                for (i in icon_unchecked) {
+                    icon.classList.remove(icon_unchecked[i]);
+                }
 				this.href = '". $this->container['url_generator']->generate($ajax_route, array('id' => $id, 'column' => $column, 'value' => 0)) ."';
 			}
 			else {
-				icon.classList.add('glyphicon-unchecked');
-				icon.classList.remove('glyphicon-check');
+                var icon_unchecked = '".$this->options['icon_unchecked']."'.trim().split(' ');
+                for (i in icon_unchecked) {
+                    icon.classList.add(icon_unchecked[i]);
+                }
+                var icon_check = '".$this->options['icon_check']."'.trim().split(' ');
+                for (i in icon_check) {
+                    icon.classList.remove(icon_check[i]);
+                }
 				this.href = '". $this->container['url_generator']->generate($ajax_route, array('id' => $id, 'column' => $column, 'value' => 1)) ."';
 			}";
 
 		if ($value) {
-			return sprintf('<a class="btn btn-link ajax" href="%s" data-callback="%s"><span class="glyphicon glyphicon-check"></span></a>', $url, $callback);
+			return sprintf('<a class="btn btn-link ajax" href="%s" data-callback="%s"><span class="glyphicon %s"></span></a>', $url, $callback, $this->options['icon_check']);
 		}
 		else {
-			return sprintf('<a class="btn btn-link ajax" href="%s" data-callback="%s"><span class="glyphicon glyphicon-unchecked"></span></a>', $url, $callback);
+			return sprintf('<a class="btn btn-link ajax" href="%s" data-callback="%s"><span class="glyphicon %s"></span></a>', $url, $callback, $this->options['icon_unchecked']);
 		}
 	}
 }
