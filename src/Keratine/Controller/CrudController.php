@@ -1,6 +1,10 @@
 <?php
 namespace Keratine\Controller;
 
+use ReflectionProperty;
+use ReflectionClass;
+
+use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\QueryBuilder;
 
 use Silex\Application;
@@ -8,6 +12,7 @@ use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 
 abstract class CrudController extends Controller
 {
@@ -158,10 +163,10 @@ abstract class CrudController extends Controller
      **/
     protected function getSortableColumn()
     {
-        $reader = new \Doctrine\Common\Annotations\AnnotationReader();
-        $reflClass = new \ReflectionClass($this->getEntityClass());
+        $reader = new AnnotationReader();
+        $reflClass = new ReflectionClass($this->getEntityClass());
         foreach ($reflClass->getProperties() as $property) {
-            $reflProperty = new \ReflectionProperty($this->getEntityClass(), $property->name);
+            $reflProperty = new ReflectionProperty($this->getEntityClass(), $property->name);
             $annotation = $reader->getPropertyAnnotation($reflProperty, '\Gedmo\Mapping\Annotation\SortablePosition');
             if ($annotation) {
                 return $property->name;
@@ -177,10 +182,10 @@ abstract class CrudController extends Controller
      **/
     protected function getSortableGroup()
     {
-        $reader = new \Doctrine\Common\Annotations\AnnotationReader();
-        $reflClass = new \ReflectionClass($this->getEntityClass());
+        $reader = new AnnotationReader();
+        $reflClass = new ReflectionClass($this->getEntityClass());
         foreach ($reflClass->getProperties() as $property) {
-            $reflProperty = new \ReflectionProperty($this->getEntityClass(), $property->name);
+            $reflProperty = new ReflectionProperty($this->getEntityClass(), $property->name);
             $annotation = $reader->getPropertyAnnotation($reflProperty, '\Gedmo\Mapping\Annotation\SortableGroup');
             if ($annotation) {
                 return $property->name;
@@ -362,7 +367,8 @@ abstract class CrudController extends Controller
             throw $this->createNotFoundException('Unable to find entity.');
         }
 
-        $entity->{$request->get('column')} = $request->get('value');
+        $accessor = PropertyAccess::createPropertyAccessor();
+        $accessor->setValue($entity, $request->get('column'), $request->get('value'));
 
         $this->get('orm.em')->flush();
 
@@ -378,8 +384,8 @@ abstract class CrudController extends Controller
             throw $this->createNotFoundException('Unable to find entity.');
         }
 
-        $reader = new \Doctrine\Common\Annotations\AnnotationReader();
-        $reflProperty = new \ReflectionProperty($this->getEntityClass(), 'position');
+        $reader = new AnnotationReader();
+        $reflProperty = new ReflectionProperty($this->getEntityClass(), 'position');
         $annotation = $reader->getPropertyAnnotation($reflProperty, '\Gedmo\Mapping\Annotation\SortablePosition');
 
         if ($annotation) {
