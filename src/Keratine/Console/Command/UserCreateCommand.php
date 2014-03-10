@@ -49,6 +49,8 @@ class UserCreateCommand extends ContainerAwareCommand
         $user->setUsername($username);
         $user->setEmail($email);
 
+        $user->setIsActive(true);
+
         if ($roles = $input->getOption('roles')) {
             $user->setRoles($roles);
         }
