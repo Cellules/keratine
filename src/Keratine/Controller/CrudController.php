@@ -79,20 +79,30 @@ abstract class CrudController extends Controller
         $controllers->match('/position/{id}/{position}', array($this, 'positionAction'))
             ->bind( $this->getRoutePrefix() . '_position' );
 
-        $controllers->get('/{sort}/{order}/{filter}/{filterValue}', array($this, 'indexAction'))
+        $controllers->get('/{sort}/{order}', array($this, 'indexAction'))
             ->value('sort', null)
             ->value('order', null)
-            ->value('filter', '')
-            ->value('filterValue', '')
             ->bind( $this->getRoutePrefix() );
 
 		return $controllers;
 	}
 
 
-	public function indexAction($sort, $order, $filter, $filterValue)
+	public function indexAction()
 	{
-        $queryBuilder = $this->getBySortQueryBuilder($sort, $order);
+        $alias = $this->getRoutePrefix();
+        $queryBuilder = $this->createQueryBuilder($alias);
+
+        // apply sort
+        $queryBuilder = $this->applyQuerySort($queryBuilder, $alias);
+
+        // handle filters form
+        $filters = $this->getFiltersType();
+        $filters->handleRequest($this->get('request'));
+        if ($filters->isValid()) {
+            // apply filters
+            $queryBuilder = $this->applyQueryFilters($queryBuilder, $alias, $filters->getData());
+        }
 
         $query = $queryBuilder->getQuery();
 
@@ -108,31 +118,70 @@ abstract class CrudController extends Controller
 		}
 
 		return $this->get('twig')->render('admin/list.html.twig', array(
-        	'prefix'   => $this->getRoutePrefix(),
-        	'columns'  => $columns,
-        	'sort'     => $sort,
-        	'order'    => $order,
-			'entities' => $entities,
-            'sortable' => $this->isSortable(),
+            'prefix'      => $this->getRoutePrefix(),
+            'columns'     => $columns,
+            'sort'        => $this->get('request')->get('sort'),
+            'order'       => $this->get('request')->get('order'),
+            'filters'     => $this->get('request')->get('filters'),
+            'filtersForm' => $filters->createView(),
+            'entities'    => $entities,
+            'sortable'    => $this->isSortable(),
 		));
 	}
 
+
     /**
-     * Gets by sort query builder
+     * Create query builder from the current repository
      *
-     * @param string $sort Sortable column
-     * @param string $alias Root query alias
-     *
-     * @return Doctrine\ORM\QueryBuilder
-     **/
-    protected function getBySortQueryBuilder($sort, $order = 'ASC', $alias = 'a')
+     * @param string $alias Root alias to use with the query
+     */
+    protected function createQueryBuilder($alias = 'a')
     {
         $repository = $this->get('orm.em')->getRepository($this->getEntityClass());
 
         $queryBuilder = $repository->createQueryBuilder($alias);
-        // $alias = current($queryBuilder->getDQLPart('from'))->getAlias();
+
+        return $queryBuilder;
+    }
+
+
+    /**
+     * Apply filters to query builder
+     *
+     * @param QueryBuilder $queryBuilder Query builder instance
+     * @param string $alias Root query alias
+     * @param array $filters Associative array of filters values to apply
+     *
+     * @return Doctrine\ORM\QueryBuilder
+     */
+    protected function applyQueryFilters(QueryBuilder $queryBuilder, $alias = 'a', $filters = array())
+    {
+        foreach ($filters as $filter => $value) {
+            if ($value) {
+                $queryBuilder->andWhere($alias . '.' . $filter . ' = :' . $filter);
+                $queryBuilder->setParameter($filter, $value);
+            }
+        }
+
+        return $queryBuilder;
+    }
+
+
+    /**
+     * Gets by sort query builder
+     *
+     * @param QueryBuilder $queryBuilder Query builder instance
+     * @param string $alias Root query alias
+     *
+     * @return Doctrine\ORM\QueryBuilder
+     **/
+    protected function applyQuerySort(QueryBuilder $queryBuilder, $alias = 'a')
+    {
+        $sort = $this->get('request')->get('sort');
+        $order = $this->get('request')->get('order');
 
         if ($sort) {
+            $repository = $this->get('orm.em')->getRepository($this->getEntityClass());
             // sort using the getQueryBuilderOrderedBy* magic method if defined
             $sortMethodName = 'getQueryBuilderOrderedBy'.ucfirst(strtolower($sort));
             if (method_exists($repository, $sortMethodName)) {
@@ -240,6 +289,31 @@ abstract class CrudController extends Controller
     }
 
 
+    /**
+     * Create filters form
+     *
+     * @return Form
+     */
+    protected function getFiltersType()
+    {
+        // var_dump($this->get('request')->query->all());exit;
+        $form = $this->get('form.factory')->createNamed('filters', 'form', null, array(
+            'action'          => $this->generateUrl($this->getRoutePrefix(), array(
+                'sort'  => $this->get('request')->get('sort'),
+                'order' => $this->get('request')->get('order'),
+            )),
+            'method'          => 'GET',
+            'csrf_protection' => false,
+            'attr'            => array(
+                'class'    => 'form-inline',
+                'onchange' => 'this.submit()',
+            ),
+        ));
+
+        return $form;
+    }
+
+
 	public function newAction()
     {
         $entityClass = $this->getEntityClass();
@@ -248,6 +322,7 @@ abstract class CrudController extends Controller
         $form = $this->createCreateForm($entity);
 
         return $this->get('twig')->render('admin/new.html.twig', array(
+            'prefix' => $this->getRoutePrefix(),
             'entity' => $entity,
             'form'   => $form->createView(),
         ));
@@ -270,6 +345,7 @@ abstract class CrudController extends Controller
         }
 
         return $this->get('twig')->render('admin/new.html.twig', array(
+            'prefix' => $this->getRoutePrefix(),
             'entity' => $entity,
             'form'   => $form->createView(),
         ));
@@ -282,8 +358,6 @@ abstract class CrudController extends Controller
             'action' => $this->generateUrl($this->getRoutePrefix() . '_create', array('id' => $entity->getId())),
             'method' => 'POST',
         ));
-
-        $form->add('submit', 'submit', array('label' => 'create', 'attr' => array('class' => 'btn btn-primary')));
 
         return $form;
     }
@@ -300,6 +374,7 @@ abstract class CrudController extends Controller
         $editForm = $this->createEditForm($entity);
 
         return $this->get('twig')->render('admin/edit.html.twig',  array(
+            'prefix' => $this->getRoutePrefix(),
             'entity' => $entity,
             'form'   => $editForm->createView()
         ));
@@ -324,6 +399,7 @@ abstract class CrudController extends Controller
         }
 
         return $this->get('twig')->render('admin/edit.html.twig',  array(
+            'prefix' => $this->getRoutePrefix(),
             'entity' => $entity,
             'form'   => $editForm->createView()
         ));
@@ -336,8 +412,6 @@ abstract class CrudController extends Controller
             'action' => $this->generateUrl($this->getRoutePrefix() . '_update', array('id' => $entity->getId())),
             'method' => 'POST',
         ));
-
-        $form->add('submit', 'submit', array('label' => 'update', 'attr' => array('class' => 'btn btn-primary')));
 
         return $form;
     }
