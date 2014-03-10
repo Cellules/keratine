@@ -60,6 +60,8 @@ class Application extends SilexApplication
 
         $app = $this;
 
+        $app['site_title'] = $config['site_title'];
+
         $app['copyright'] = $config['copyright'];
 
         $app['version'] = $config['version'];
@@ -95,6 +97,7 @@ class Application extends SilexApplication
         ));
         $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
             // add custom globals, filters, tags, ...
+            $twig->addGlobal('site_title', $app['site_title']);
             // $twig->addExtension(new \Keratine\Twig\BootstrapFormExtension());
             $twig->addExtension(new BootstrapFormExtension());
             return $twig;

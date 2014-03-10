@@ -16,6 +16,7 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
+                ->scalarNode('site_title')->end()
                 ->scalarNode('root_dir')->end()
                 ->booleanNode('debug')
                     ->defaultTrue()
@@ -174,6 +175,11 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('host')
                             ->defaultValue('localhost')
                         ->end()
+                        ->scalarNode('port')->end()
+                        ->scalarNode('unix_socket')->end()
+                        ->scalarNode('path')->end()
+                        ->scalarNode('memory')->end()
+                        ->scalarNode('sslmode')->end()
                         ->scalarNode('dbname')->end()
                         ->scalarNode('user')->end()
                         ->scalarNode('password')->end()
