@@ -12,33 +12,34 @@ use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 abstract class CrudController extends Controller
 {
 
-	/**
-	 * Gets the controller's route prefix.
-	 *
-	 * @return string
-	 **/
-	abstract protected function getRoutePrefix();
+    /**
+     * Gets the controller's route prefix.
+     *
+     * @return string
+     **/
+    abstract protected function getRoutePrefix();
 
 
-	/**
-	 * Gets the entity class.
-	 *
-	 * @return string
-	 **/
-	abstract protected function getEntityClass();
+    /**
+     * Gets the entity class.
+     *
+     * @return string
+     **/
+    abstract protected function getEntityClass();
 
 
-	/**
-	 * Gets the list columns configuration
-	 *
-	 * @return array
-	 **/
-	abstract protected function getColumns();
+    /**
+     * Gets the list columns configuration
+     *
+     * @return array
+     **/
+    abstract protected function getColumns();
 
 
     /**
@@ -52,26 +53,26 @@ abstract class CrudController extends Controller
     /**
      * {@inheritdoc}
      */
-	public function connect(Application $app)
-	{
-		$this->container = $app;
+    public function connect(Application $app)
+    {
+        $this->container = $app;
 
-		$controllers = $app['controllers_factory'];
+        $controllers = $app['controllers_factory'];
 
-		$controllers->get('/new', array($this, 'newAction'))
-			->bind( $this->getRoutePrefix() . '_new' );
+        $controllers->get('/new', array($this, 'newAction'))
+            ->bind( $this->getRoutePrefix() . '_new' );
 
-		$controllers->post('/create', array($this, 'createAction'))
-			->bind( $this->getRoutePrefix() . '_create' );
+        $controllers->post('/create', array($this, 'createAction'))
+            ->bind( $this->getRoutePrefix() . '_create' );
 
-		$controllers->get('/edit/{id}', array($this, 'editAction'))
-			->bind( $this->getRoutePrefix() . '_edit' );
+        $controllers->get('/edit/{id}', array($this, 'editAction'))
+            ->bind( $this->getRoutePrefix() . '_edit' );
 
-		$controllers->post('/update/{id}', array($this, 'updateAction'))
-			->bind( $this->getRoutePrefix() . '_update' );
+        $controllers->post('/update/{id}', array($this, 'updateAction'))
+            ->bind( $this->getRoutePrefix() . '_update' );
 
-		$controllers->get('/delete/{id}', array($this, 'deleteAction'))
-			->bind( $this->getRoutePrefix() . '_delete' );
+        $controllers->get('/delete/{id}', array($this, 'deleteAction'))
+            ->bind( $this->getRoutePrefix() . '_delete' );
 
         $controllers->match('/ajax', array($this, 'ajaxAction'))
             ->bind( $this->getRoutePrefix() . '_ajax' );
@@ -84,12 +85,12 @@ abstract class CrudController extends Controller
             ->value('order', null)
             ->bind( $this->getRoutePrefix() );
 
-		return $controllers;
-	}
+        return $controllers;
+    }
 
 
-	public function indexAction()
-	{
+    public function indexAction()
+    {
         $alias = $this->getRoutePrefix();
         $queryBuilder = $this->createQueryBuilder($alias);
 
@@ -106,18 +107,18 @@ abstract class CrudController extends Controller
 
         $query = $queryBuilder->getQuery();
 
-		$entities = $query->getResult();
+        $entities = $query->getResult();
 
         $columns = $this->setSortableColumns($this->getColumns());
 
         // define container on each widget
-		foreach ($columns as $column) {
-			if (isset($column['widget'])) {
-				$column['widget']->setContainer($this->container);
-			}
-		}
+        foreach ($columns as $column) {
+            if (isset($column['widget'])) {
+                $column['widget']->setContainer($this->container);
+            }
+        }
 
-		return $this->get('twig')->render('admin/list.html.twig', array(
+        return $this->get('twig')->render('admin/list.html.twig', array(
             'prefix'      => $this->getRoutePrefix(),
             'columns'     => $columns,
             'sort'        => $this->get('request')->get('sort'),
@@ -126,8 +127,8 @@ abstract class CrudController extends Controller
             'filtersForm' => $filters->createView(),
             'entities'    => $entities,
             'sortable'    => $this->isSortable(),
-		));
-	}
+        ));
+    }
 
 
     /**
@@ -324,7 +325,7 @@ abstract class CrudController extends Controller
     }
 
 
-	public function newAction()
+    public function newAction()
     {
         $entityClass = $this->getEntityClass();
         $entity = new $entityClass;
@@ -362,18 +363,7 @@ abstract class CrudController extends Controller
     }
 
 
-    protected function createCreateForm($entity)
-    {
-        $form = $this->createForm($this->getType(), $entity, array(
-            'action' => $this->generateUrl($this->getRoutePrefix() . '_create', array('id' => $entity->getId())),
-            'method' => 'POST',
-        ));
-
-        return $form;
-    }
-
-
-	public function editAction($id)
+    public function editAction($id)
     {
         $entity = $this->get('orm.em')->find($this->getEntityClass(), $id);
 
@@ -389,6 +379,7 @@ abstract class CrudController extends Controller
             'form'   => $editForm->createView()
         ));
     }
+
 
     public function updateAction(Request $request, $id)
     {
@@ -416,12 +407,44 @@ abstract class CrudController extends Controller
     }
 
 
+    protected function createCreateForm($entity)
+    {
+        $options = array(
+            'action' => $this->generateUrl($this->getRoutePrefix() . '_create', array('id' => $entity->getId())),
+            'method' => 'POST',
+        );
+
+        $form = $this->createFormWithOptions($entity, $options);
+
+        return $form;
+    }
+
+
     protected function createEditForm($entity)
     {
-        $form = $this->createForm($this->getType(), $entity, array(
+        $options = array(
             'action' => $this->generateUrl($this->getRoutePrefix() . '_update', array('id' => $entity->getId())),
             'method' => 'POST',
-        ));
+        );
+
+        $form = $this->createFormWithOptions($entity, $options);
+
+        return $form;
+    }
+
+    protected function createFormWithOptions($entity, $options = array())
+    {
+        $type = $this->getType();
+
+        $resolver = new OptionsResolver();
+        $type->setDefaultOptions($resolver);
+
+        // add Doctrine Entity Manager if known by the type options resolver
+        if ($resolver->isKnown('em')) {
+            $options['em'] = $this->get('orm.em');
+        }
+
+        $form = $this->createForm($type, $entity, $options);
 
         return $form;
     }
@@ -429,7 +452,7 @@ abstract class CrudController extends Controller
 
     public function deleteAction($id)
     {
-    	$entity = $this->get('orm.em')->find($this->getEntityClass(), $id);
+        $entity = $this->get('orm.em')->find($this->getEntityClass(), $id);
 
         if (!$entity) {
             throw $this->createNotFoundException('Unable to find entity.');
