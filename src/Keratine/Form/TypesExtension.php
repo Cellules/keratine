@@ -33,6 +33,7 @@ class TypesExtension extends AbstractExtension
             new Type\FileExplorerType(),
             new Type\ImageCropType(),
             new Type\ImageType(),
+            new Type\TextboxListType(),
             new Type\TranslatedEntityType($this->container),
         );
 
