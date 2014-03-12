@@ -21,6 +21,7 @@ use Gedmo\Translatable\TranslatableListener;
 
 use Keratine\Form\TypesExtension;
 use Keratine\Lucene\IndexableListener;
+use Keratine\Doctrine\Listener\DoctrineExtensionListener;
 use Keratine\Doctrine\Listener\ThumbnailListener;
 use Keratine\Persistence\DoctrineRegistry;
 use Keratine\Provider\DoctrineManagerRegistryProvider;
@@ -60,8 +61,6 @@ class Application extends SilexApplication
 
         $app = $this;
 
-        $app['site_title'] = $config['site_title'];
-
         $app['copyright'] = $config['copyright'];
 
         $app['version'] = $config['version'];
@@ -97,7 +96,6 @@ class Application extends SilexApplication
         ));
         $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
             // add custom globals, filters, tags, ...
-            $twig->addGlobal('site_title', $app['site_title']);
             // $twig->addExtension(new \Keratine\Twig\BootstrapFormExtension());
             $twig->addExtension(new BootstrapFormExtension());
             return $twig;
@@ -187,40 +185,44 @@ class Application extends SilexApplication
         $cachedAnnotationReader = new CachedReader($annotationReader, $app['orm.cache']);
 
         // sluggable
-        $sluggableListener = new SluggableListener();
-        $sluggableListener->setAnnotationReader($cachedAnnotationReader);
-        $app['db.event_manager']->addEventSubscriber($sluggableListener);
+        $app['gedmo.listener.sluggable'] = new SluggableListener();
+        $app['gedmo.listener.sluggable']->setAnnotationReader($cachedAnnotationReader);
+        $app['db.event_manager']->addEventSubscriber($app['gedmo.listener.sluggable']);
 
         // sortable
-        $sortableListener = new SortableListener();
-        $sortableListener->setAnnotationReader($cachedAnnotationReader);
-        $app['db.event_manager']->addEventSubscriber($sortableListener);
+        $app['gedmo.listener.sortable'] = new SortableListener();
+        $app['gedmo.listener.sortable']->setAnnotationReader($cachedAnnotationReader);
+        $app['db.event_manager']->addEventSubscriber($app['gedmo.listener.sortable']);
 
         // loggable
-        $loggableListener = new LoggableListener;
-        $loggableListener->setAnnotationReader($cachedAnnotationReader);
-        $app['db.event_manager']->addEventSubscriber($loggableListener);
+        $app['gedmo.listener.loggable'] = new LoggableListener;
+        $app['gedmo.listener.loggable']->setAnnotationReader($cachedAnnotationReader);
+        $app['db.event_manager']->addEventSubscriber($app['gedmo.listener.loggable']);
 
         // timestampable
-        $timestampableListener = new TimestampableListener;
-        $timestampableListener->setAnnotationReader($cachedAnnotationReader);
-        $app['db.event_manager']->addEventSubscriber($timestampableListener);
+        $app['gedmo.listener.timestampable'] = new TimestampableListener;
+        $app['gedmo.listener.timestampable']->setAnnotationReader($cachedAnnotationReader);
+        $app['db.event_manager']->addEventSubscriber($app['gedmo.listener.timestampable']);
 
         // translatable
-        $translatableListener = new TranslatableListener();
-        $translatableListener->setTranslatableLocale($app['locale']);
-        $translatableListener->setDefaultLocale($app['locale']);
-        $translatableListener->setAnnotationReader($cachedAnnotationReader);
-        $app['db.event_manager']->addEventSubscriber($translatableListener);
+        $app['gedmo.listener.translatable'] = new TranslatableListener();
+        $app['gedmo.listener.translatable']->setTranslatableLocale($app['locale']);
+        $app['gedmo.listener.translatable']->setDefaultLocale($app['locale']);
+        $app['gedmo.listener.translatable']->setAnnotationReader($cachedAnnotationReader);
+        $app['db.event_manager']->addEventSubscriber($app['gedmo.listener.translatable']);
 
         // Lucene Indexable
-        $luceneListener = new IndexableListener( $app['zendsearch.indices'] );
-        $app['db.event_manager']->addEventSubscriber($luceneListener);
+        $app['keratine.listener.lucene'] = new IndexableListener( $app['zendsearch.indices'] );
+        $app['db.event_manager']->addEventSubscriber($app['keratine.listener.lucene']);
 
         // Thumbnail
-        $thumbnailListener = new ThumbnailListener();
-        $thumbnailListener->setAnnotationReader($cachedAnnotationReader);
-        $app['db.event_manager']->addEventSubscriber($thumbnailListener);
+        $app['keratine.listener.thumbnail'] = new ThumbnailListener();
+        $app['keratine.listener.thumbnail']->setAnnotationReader($cachedAnnotationReader);
+        $app['db.event_manager']->addEventSubscriber($app['keratine.listener.thumbnail']);
+
+        // Doctrine Extension Listener
+        $app['extension.listener'] = new DoctrineExtensionListener($app);
+        $app['dispatcher']->addSubscriber($app['extension.listener']);
 
         // DoctrineManagerRegistry
         $app->register(new DoctrineManagerRegistryProvider());
