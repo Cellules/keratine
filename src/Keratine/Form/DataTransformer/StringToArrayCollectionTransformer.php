@@ -1,5 +1,5 @@
 <?php
-namespace Form\Ressources;
+namespace Keratine\Form\DataTransformer;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Persistence\ObjectManager;
