@@ -158,7 +158,17 @@ abstract class CrudController extends Controller
     {
         foreach ($filters as $filter => $value) {
             if ($value) {
-                $queryBuilder->andWhere($alias . '.' . $filter . ' = :' . $filter);
+                $reader = new AnnotationReader();
+                $reflProperty = new ReflectionProperty($this->getEntityClass(), $filter);
+                $OneToMany = $reader->getPropertyAnnotation($reflProperty, '\Doctrine\ORM\Mapping\OneToMany');
+                $ManyToMany = $reader->getPropertyAnnotation($reflProperty, '\Doctrine\ORM\Mapping\ManyToMany');
+                if ($OneToMany || $ManyToMany) {
+                    $queryBuilder->leftJoin($alias . '.' . $filter, $filter);
+                    $queryBuilder->andWhere($filter . ' = :' . $filter);
+                }
+                else {
+                    $queryBuilder->andWhere($alias . '.' . $filter . ' = :' . $filter);
+                }
                 $queryBuilder->setParameter($filter, $value);
             }
         }
