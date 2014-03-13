@@ -14,8 +14,8 @@
         "pimple/pimple": "~1.0",
         "silex/silex": "~1.1",
         "dflydev/doctrine-orm-service-provider": "1.0.*@dev",
-        "gedmo/doctrine-extensions": "dev-master",
-        "mheap/Silex-Assetic": "*",
+        "gedmo/doctrine-extensions": "*",
+        "mheap/silex-assetic": "*",
         "silex/web-profiler": "~1.0",
         "symfony/browser-kit": "~2.3",
         "symfony/class-loader": "~2.3",
@@ -35,7 +35,6 @@
         "symfony/validator": "~2.3",
         "symfony/yaml": "~2.3",
         "braincrafted/bootstrap-bundle": "dev-develop",
-        "jms/serializer": "dev-master",
         "zendframework/ZendSearch": "dev-master"
     },
     "autoload": {
