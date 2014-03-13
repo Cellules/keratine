@@ -61,6 +61,8 @@ class Application extends SilexApplication
 
         $app = $this;
 
+        $app['site_title'] = $config['site_title'];
+
         $app['copyright'] = $config['copyright'];
 
         $app['version'] = $config['version'];
