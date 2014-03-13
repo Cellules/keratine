@@ -317,7 +317,6 @@ abstract class CrudController extends Controller
             'csrf_protection' => false,
             'attr'            => array(
                 'class'    => 'form-inline',
-                'onchange' => 'this.submit()',
             ),
         ));
 
