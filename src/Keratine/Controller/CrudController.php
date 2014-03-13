@@ -432,6 +432,7 @@ abstract class CrudController extends Controller
         return $form;
     }
 
+
     protected function createFormWithOptions($entity, $options = array())
     {
         $type = $this->getType();
@@ -463,6 +464,7 @@ abstract class CrudController extends Controller
 
         return $this->redirect($this->generateUrl($this->getRoutePrefix()));
     }
+
 
     public function ajaxAction(Request $request)
     {
