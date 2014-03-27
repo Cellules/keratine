@@ -53,6 +53,8 @@ use Symfony\Bridge\Doctrine\Form\DoctrineOrmExtension;
 use Symfony\Component\Translation\Loader\YamlFileLoader;
 use Symfony\Component\Yaml\Yaml;
 
+use Sorien\Provider\DoctrineProfilerServiceProvider;
+
 class Application extends SilexApplication
 {
      public function __construct($config = array(), array $values = array())
@@ -284,6 +286,8 @@ class Application extends SilexApplication
                 'profiler.cache_dir' => $config['profiler']['cache_dir'],
             ));
             $app->mount('/_profiler', $p);
+
+            $app->register(new DoctrineProfilerServiceProvider());
 
         }
 
