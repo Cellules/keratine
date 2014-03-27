@@ -16,7 +16,12 @@ class Set extends AbstractWidget
 
 	public function render($entity, $column)
 	{
-		$value = $this->getEntityValue($entity, $column);
+        if (is_array($entity)) {
+            $value = $entity[$column];
+        }
+		else {
+            $value = $this->getEntityValue($entity, $column);
+        }
 
 		if (is_array($value) || $value instanceof \Traversable) {
 			$return = array();
