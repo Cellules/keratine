@@ -33,6 +33,7 @@ use Dflydev\Silex\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 use Pimple;
 
 use Silex\Application as SilexApplication;
+use Silex\Provider\HttpCacheServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
 use Silex\Provider\FormServiceProvider;
 use Silex\Provider\MonologServiceProvider;
@@ -87,6 +88,10 @@ class Application extends SilexApplication
 
         $app->register(new SessionServiceProvider(), array(
             'session.storage.options' => $config['session']
+        ));
+
+        $app->register(new HttpCacheServiceProvider(), array(
+            'http_cache.cache_dir' => __DIR__ . '/../var/cache/http/',
         ));
 
         $app->register(new FormServiceProvider());
@@ -191,6 +196,7 @@ class Application extends SilexApplication
         // sluggable
         $app['gedmo.listener.sluggable'] = new SluggableListener();
         $app['gedmo.listener.sluggable']->setAnnotationReader($cachedAnnotationReader);
+        $app['gedmo.listener.sluggable']->setTransliterator(array('Keratine\Doctrine\Util\Urlizer', 'transliterate'));
         $app['db.event_manager']->addEventSubscriber($app['gedmo.listener.sluggable']);
 
         // sortable
@@ -280,6 +286,8 @@ class Application extends SilexApplication
 
             $app->register(new MonologServiceProvider(), array(
                 'monolog.logfile' => $config['monolog']['logfile'],
+                'monolog.level'   => $config['monolog']['level'],
+                'monolog.name'    => $config['monolog']['name'],
             ));
 
             $app->register($p = new WebProfilerServiceProvider(), array(
