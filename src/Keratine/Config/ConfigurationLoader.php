@@ -13,16 +13,16 @@ use Symfony\Component\Yaml\Yaml;
 
 class ConfigurationLoader
 {
-    private $path;
+    private $locator;
 
     private $files;
 
     private $parameterBag;
 
 
-    public function __construct($path = array(), $files = array(), $replacements = array())
+    public function __construct(FileLocator $locator, $files = array(), $replacements = array())
     {
-        $this->path = $path;
+        $this->locator = $locator;
         $this->files = $files;
         $this->parameterBag = new ParameterBag();
     }
@@ -31,13 +31,12 @@ class ConfigurationLoader
     {
         $config = array();
 
-        $locator = new FileLocator($this->path);
-        $yamlLoader = new YamlFileLoader($locator);
+        $yamlLoader = new YamlFileLoader($this->locator);
         $loaderResolver = new LoaderResolver(array($yamlLoader));
         $delegatingLoader = new DelegatingLoader($loaderResolver);
 
         foreach ($this->files as $filename) {
-            $values = $delegatingLoader->load($this->path.'/'.$filename);
+            $values = $delegatingLoader->load($filename);
             $config = array_replace_recursive($config, $values);
         }
 

@@ -8,7 +8,19 @@ class YamlFileLoader extends FileLoader
 {
     public function load($resource, $type = null)
     {
-        $config = Yaml::parse($resource);
+        $path = $this->locator->locate($resource);
+
+        $config = Yaml::parse($path);
+
+        // empty file
+        if (null === $config) {
+            $config = array();
+        }
+
+        // not an array
+        if (!is_array($config)) {
+            throw new \InvalidArgumentException(sprintf('The file "%s" must contain a YAML array.', $file));
+        }
 
         return $config;
     }
