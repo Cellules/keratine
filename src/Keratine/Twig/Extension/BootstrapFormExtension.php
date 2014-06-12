@@ -4,7 +4,7 @@
  * (c) 2012-2013 by Florian Eckerstorfer
  */
 
-namespace Keratine\Twig;
+namespace Keratine\Twig\Extension;
 
 /**
  * BootstrapFormExtension
