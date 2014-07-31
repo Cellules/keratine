@@ -3,7 +3,7 @@ namespace Keratine\Twig\Extension;
 
 use Silex\Application;
 
-class AssetsExtension extends  \Twig_Extension
+class AssetsExtension extends \Twig_Extension
 {
     private $app;
     private $options;
