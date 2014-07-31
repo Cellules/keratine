@@ -28,6 +28,7 @@ use Keratine\Provider\DoctrineManagerRegistryProvider;
 use Keratine\Provider\UserProvider;
 use Keratine\Provider\ZendSearchServiceProvider;
 use Keratine\Twig\Extension\AssetsExtension;
+use Keratine\Twig\Extension\CurrencyExtension;
 
 use Dflydev\Silex\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 
@@ -107,6 +108,7 @@ class Application extends SilexApplication
         $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
             // add custom globals, filters, tags, ...
             $twig->addExtension(new AssetsExtension($app));
+            $twig->addExtension(new CurrencyExtension());
             // $twig->addExtension(new \Keratine\Twig\BootstrapFormExtension());
             $twig->addExtension(new BootstrapFormExtension());
             return $twig;
@@ -281,16 +283,16 @@ class Application extends SilexApplication
 
         $app->register(new SwiftmailerServiceProvider(), $config['swiftmailer']);
 
+        $app->register(new MonologServiceProvider(), array(
+            'monolog.logfile' => $config['monolog']['logfile'],
+            'monolog.level'   => $config['monolog']['level'],
+            'monolog.name'    => $config['monolog']['name'],
+        ));
+
         /*
          * Debug environment
          */
         if ($app['debug']) {
-
-            $app->register(new MonologServiceProvider(), array(
-                'monolog.logfile' => $config['monolog']['logfile'],
-                'monolog.level'   => $config['monolog']['level'],
-                'monolog.name'    => $config['monolog']['name'],
-            ));
 
             $app->register($p = new WebProfilerServiceProvider(), array(
                 'profiler.cache_dir' => $config['profiler']['cache_dir'],
