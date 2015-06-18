@@ -53,6 +53,7 @@ use SilexAssetic\AsseticServiceProvider;
 
 use Symfony\Bridge\Doctrine\Form\DoctrineOrmExtension;
 
+use Symfony\Component\Debug\Debug;
 use Symfony\Component\Translation\Loader\YamlFileLoader;
 use Symfony\Component\Yaml\Yaml;
 
@@ -81,6 +82,10 @@ class Application extends SilexApplication
         $app['debug'] = $config['debug'];
 
         $app['locale'] = $config['locale'];
+
+        if ($app['debug']) {
+            Debug::enable();
+        }
 
         $app->register(new UrlGeneratorServiceProvider());
 
